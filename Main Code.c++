@@ -60,7 +60,7 @@ void foc_right(int FOC_POWER_SET_1) {
 void setup() {
   Serial.begin(9600);
   int pins[] = { P1, P2, P3, P4, M1, M2, M3, M4 };
-  for (int i = 0; i < 8; i++) pinMode(pins[i], OUTPUT);
+  for (int i = 0; i < 8; i++) { pinMode(pins[i], OUTPUT);}
 }
 void pre_executionMovement() {
   foc_forward(FOC_POWER_SET_1);
@@ -72,7 +72,6 @@ void loop() {
     delay(10000);
     pre_executionMovement();
     delay(1000);
-    Serial.print("IO High");
     for (int stage = 0; stage <= maxStages; stage++) {
       if (movement_list[stage] == 0) { break; }
       Serial.print("Executing stage: ");
