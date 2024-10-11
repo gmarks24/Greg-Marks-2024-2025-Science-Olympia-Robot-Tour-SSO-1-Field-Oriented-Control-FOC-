@@ -1,1 +1,1 @@
-Add fuctionality for 
+Add fuctionality for GPS positioning
