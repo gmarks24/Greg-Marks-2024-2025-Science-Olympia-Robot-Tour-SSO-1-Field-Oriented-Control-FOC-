@@ -7,8 +7,8 @@
 //:: Rec. battery - 6(six) AA 1.5V                                                       ::
 //:: IMU - Adafruit 9-DOF Absolute Orientation IMU Fusion Breakout - BNO055              ::
 //:: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: ::
-//V1.2.0
-//11 Oct 2024
+//V1.3.0
+//12 Oct 2024
 //#include "Arduino_LED_Matrix.h" //<Only needed if using Arduino R4 WiFi>//
 #include "Arduino.h"
 #include <Wire.h>
