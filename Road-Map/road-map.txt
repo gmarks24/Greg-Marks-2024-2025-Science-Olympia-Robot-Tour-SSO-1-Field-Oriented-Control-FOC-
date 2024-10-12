@@ -1,2 +1,2 @@
-Add fuctionality for 3-axis accelerometer
+
 Add fuctionality for independent motor control
