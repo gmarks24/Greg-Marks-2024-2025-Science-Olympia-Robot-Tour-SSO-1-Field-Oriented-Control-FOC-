@@ -6,7 +6,8 @@
 //:: Operation - 9V & Max 20.6Amps [Rec. 20-22awg wire]                                  ::
 //:: Rec. battery - 6(six) AA 1.5V                                                       ::
 //:: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: :: ::
-
+//V1.2.0
+//11 Oct 2024
 //#include "Arduino_LED_Matrix.h" //<Only needed if using Arduino R4 WiFi>//
 #include "Arduino.h"
 #include <Wire.h>
@@ -27,9 +28,10 @@ int foc_distance_50cm = 1000;                                                // 
 int foc_distance_100cm = 2000;                                               // Distance for traveling 100cm in FOC. Movement distances in milliseconds.
 int foc_distance_150cm = 3000;                                               // Distance for traveling 150cm in FOC. Movement distances in milliseconds.
 int foc_distance_200cm = 4000;                                               // Distance for traveling 200cm in FOC. Movement distances in milliseconds.
-int movement_list[] = { 1, 14, 2, 13, 3, 12, 4, 11, 5, 10, 6, 9, 7, 8, 0 };  // Up to 9600 command chains. Always end with a '0' command to end the program.  Use to set robots movement=> <https://docs.google.com/document/d/13FU5d5H6w4hezWctLNM-Rf5GTDMTaTW0ypAhlw5teiY/edit>
+int movement_list[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };  // Up to 9600 command chains. Always end with a '0' command to end the program.  Use to set robots movement=> <https://docs.google.com/document/d/13FU5d5H6w4hezWctLNM-Rf5GTDMTaTW0ypAhlw5teiY/edit>
 const int maxStages = sizeof(movement_list);                                 // Determines the size of 'movement_list'
-const int cool_down_time_set = 1000;                                         //milliseconds
+const int cool_down_time_set = 1;                                         //milliseconds
+int motor_tweak[] = { 0.99, 0.99, 0.99, 0.99};
 void foc_off(int FOC_POWER_SET_2) {
   for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_2); }
 }
@@ -37,25 +39,25 @@ void foc_forward(int FOC_POWER_SET_1) {
   int pins[] = { M1, M2, M3, M4 };
   bool states[] = { HIGH, LOW, HIGH, LOW };
   for (int i = 0; i < 4; i++) { digitalWrite(pins[i], states[i]); }
-  for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1); }
+  for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1*motor_tweak[pin]); }
 }
 void foc_backward(int FOC_POWER_SET_1) {
   int pins[] = { M1, M2, M3, M4 };
   bool states[] = { LOW, HIGH, LOW, HIGH };
   for (int i = 0; i < 4; i++) { digitalWrite(pins[i], states[i]); }
-  for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1); }
+  for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1*motor_tweak[pin]); }
 }
 void foc_left(int FOC_POWER_SET_1) {
   int pins[] = { M1, M2, M3, M4 };
   bool states[] = { LOW, LOW, HIGH, HIGH };
   for (int i = 0; i < 4; i++) { digitalWrite(pins[i], states[i]); }
-  for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1); }
+  for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1*motor_tweak[pin]); }
 }
 void foc_right(int FOC_POWER_SET_1) {
   int pins[] = { M1, M2, M3, M4 };
   bool states[] = { HIGH, HIGH, LOW, LOW };
   for (int i = 0; i < 4; i++) { digitalWrite(pins[i], states[i]); }
-  for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1); }
+  for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1*motor_tweak[pin]); }
 }
 void setup() {
   Serial.begin(9600);
@@ -65,7 +67,7 @@ void setup() {
 void pre_executionMovement() {
   foc_forward(FOC_POWER_SET_1);
   delay(foc_distance_25cm);
-  foc_forward(FOC_POWER_SET_2);
+  foc_off(FOC_POWER_SET_2);
 }
 void loop() {
   if (Serial.available() > 0) {
