@@ -1,3 +1,2 @@
-Add fuctionality for GPS positioning
 Add fuctionality for 3-axis accelerometer
 Add fuctionality for independent motor control
