@@ -29,7 +29,7 @@ Rec. battery - 6(six) AA 1.5V
 IMU - Adafruit 9-DOF Absolute Orientation IMU Fusion Breakout - BNO055
 */
 
-//V1.3.0
+//V1.5.0
 //12 Oct 2024
 //#include "Arduino_LED_Matrix.h" //<Only needed if using Arduino R4 WiFi>//
 #include "Arduino.h"
@@ -108,6 +108,7 @@ void setup() {
   MOTORsetup();
   BNOsetup();
   RTCsetup();
+  EEPROMsetup();
   delay(1000);
 }
 void MOTORsetup() {
@@ -123,6 +124,7 @@ void EEPROMsetup() {
   //EEPROM.write(10, 42);
   //int size = EEPROM.length();
 }
+void EEPROMdatalog() {}
 void BNOsetup() {
   while (!Serial.available()) {}
   Serial.println("Orientation Sensor Test");
@@ -134,16 +136,15 @@ void BNOsetup() {
 }
 void RTCsetup() {
   RTC.begin();
-  Serial.println("Enter the current date and time in the format: DD MM YYYY HH MM SS");
   while (!Serial.available()) {}
   int day, month, year, hour, minute, second;
   while (Serial.available() > 0) {
-    day = Serial.parseInt();
-    month = Serial.parseInt();
-    year = Serial.parseInt();
-    hour = Serial.parseInt();
-    minute = Serial.parseInt();
-    second = Serial.parseInt();
+    day = 1();
+    month = 1();
+    year = 1();
+    hour = 1();
+    minute = 1();
+    second = 1();
   }
   RTCTime startTime(day, (Month)month, year, hour, minute, second, DayOfWeek::MONDAY, SaveLight::SAVING_TIME_INACTIVE);
   RTC.setTime(startTime);
@@ -400,3 +401,4 @@ void executeMovement(int command) {
     default: break;  // Handle invalid commands
   }
 }
+
