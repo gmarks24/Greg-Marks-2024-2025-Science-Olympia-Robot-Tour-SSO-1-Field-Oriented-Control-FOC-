@@ -30,7 +30,7 @@ IMU - Adafruit 9-DOF Absolute Orientation IMU Fusion Breakout - BNO055
 */
 
 //V1.5.0
-//12 Oct 2024
+//4 Novermber 2024
 //#include "Arduino_LED_Matrix.h" //<Only needed if using Arduino R4 WiFi>//
 #include "Arduino.h"
 #include <Wire.h>
@@ -42,7 +42,6 @@ IMU - Adafruit 9-DOF Absolute Orientation IMU Fusion Breakout - BNO055
 #include <math.h>
 #include "RTC.h"
 #include <EEPROM.h>
-
 const int P1 = 3;                                                       // Motor1 power (Front Right)
 const int P2 = 11;                                                      // Motor2 power (Front Left)
 const int P3 = 5;                                                       // Motor3 power (Back Right)
@@ -76,6 +75,71 @@ const int cool_down_time_set = 1;                                       //millis
 int motor_tweak[] = { 0.99, 0.99, 0.99, 0.99 };
 uint16_t BNO055_SAMPLERATE_DELAY_MS = 100;
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire);
+void setup() {
+  Serial.begin(115200);
+  MOTORsetup();
+  BNOsetup();
+  RTCsetup();
+  EEPROMsetup();
+  delay(1000);
+}
+void MOTORsetup() {
+  int pins[] = { P1, P2, P3, P4, M1, M2, M3, M4 };
+  for (int i = 0; i < 8; i++) { pinMode(pins[i], OUTPUT); }
+}
+void EEPROMsetup() {
+  while (!Serial.available()) {}
+  for (int i = 0; i < EEPROM.length(); i++) {
+    EEPROM.write(i, 0xFF);  // Write 0xFF to every address
+  }
+  //byte value = EEPROM.read(10);
+  //EEPROM.write(10, 42);
+  //int size = EEPROM.length();
+}
+void EEPROMdatalog() {}
+void BNOsetup() {
+  while (!Serial.available()) {}
+  Serial.println("Orientation Sensor Test");
+  Serial.println("");
+  Adafruit_BNO055 bno = Adafruit_BNO055(-1, 0x28, &Wire);
+  if (!bno.begin()) {
+    Serial.print("No BNO055 detected, Check your wiring or I2C ADDR!");
+    while (1);
+  }
+}
+void RTCsetup() {
+  RTC.begin();
+  while (!Serial.available()) {}
+  Serial.println("Formating RTC");
+  while (Serial.available() == 0) {}
+  int day = 1;
+  int month = 1;
+  int year = 2024;
+  int hour = 1;
+  int minute = 1;
+  int second = 1;
+  RTCTime startTime(day, (Month)month, year, hour, minute, second, DayOfWeek::MONDAY, SaveLight::SAVING_TIME_INACTIVE);
+  RTC.setTime(startTime);
+  Serial.println("RTC is set!");
+}
+void pre_executionMovement() {
+  foc_forward(FOC_POWER_SET_1);
+  delay(foc_distance_25cm);
+  foc_off(FOC_POWER_SET_2);
+}
+void loop() {
+  if (Serial.available() > 0) {
+    delay(1000);
+    pre_executionMovement();
+    delay(1000);
+    for (int stage = 0; stage <= maxStages; stage++) {
+      if (movement_list[stage] == 0) { break; }
+      Serial.print("Executing stage: ");
+      Serial.println(stage);
+      executeMovement(movement_list[stage]);
+    }
+  }
+}
 void foc_off(int FOC_POWER_SET_2) {
   for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_2); }
 }
@@ -103,72 +167,6 @@ void foc_right(int FOC_POWER_SET_1) {
   for (int i = 0; i < 4; i++) { digitalWrite(pins[i], states[i]); }
   for (int pin : { P1, P2, P3, P4 }) { analogWrite(pin, FOC_POWER_SET_1 * motor_tweak[pin]); }
 }
-void setup() {
-  Serial.begin(115200);
-  MOTORsetup();
-  BNOsetup();
-  RTCsetup();
-  EEPROMsetup();
-  delay(1000);
-}
-void MOTORsetup() {
-  int pins[] = { P1, P2, P3, P4, M1, M2, M3, M4 };
-  for (int i = 0; i < 8; i++) { pinMode(pins[i], OUTPUT); }
-}
-void EEPROMsetup() {
-  while (!Serial.available()) {}
-  for (int i = 0; i < EEPROM.length(); i++) {
-    EEPROM.write(i, 0xFF);  // Write 0xFF to every address
-  }
-  //byte value = EEPROM.read(10);
-  //EEPROM.write(10, 42);
-  //int size = EEPROM.length();
-}
-void EEPROMdatalog() {}
-void BNOsetup() {
-  while (!Serial.available()) {}
-  Serial.println("Orientation Sensor Test");
-  Serial.println("");
-  if (!bno.begin()) {
-    Serial.print("No BNO055 detected, Check your wiring or I2C ADDR!");
-    while (1);
-  }
-}
-void RTCsetup() {
-  RTC.begin();
-  while (!Serial.available()) {}
-  int day, month, year, hour, minute, second;
-  while (Serial.available() > 0) {
-    day = 1();
-    month = 1();
-    year = 1();
-    hour = 1();
-    minute = 1();
-    second = 1();
-  }
-  RTCTime startTime(day, (Month)month, year, hour, minute, second, DayOfWeek::MONDAY, SaveLight::SAVING_TIME_INACTIVE);
-  RTC.setTime(startTime);
-  Serial.println("RTC is set!");
-}
-void pre_executionMovement() {
-  foc_forward(FOC_POWER_SET_1);
-  delay(foc_distance_25cm);
-  foc_off(FOC_POWER_SET_2);
-}
-void loop() {
-  if (Serial.available() > 0) {
-    delay(1000);
-    pre_executionMovement();
-    delay(1000);
-    for (int stage = 0; stage <= maxStages; stage++) {
-      if (movement_list[stage] == 0) { break; }
-      Serial.print("Executing stage: ");
-      Serial.println(stage);
-      executeMovement(movement_list[stage]);
-    }
-  }
-}
-
 void left_orientation() {
   sensors_event_t orientationData;
   bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
