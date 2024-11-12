@@ -69,11 +69,13 @@ int foc_distance_50cm_backward = 1000;
 int foc_distance_100cm_backward = 2000;                               
 int foc_distance_150cm_backward = 3000;                                 
 int foc_distance_200cm_backward = 4000;                                 
-int movement_list[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };  // Up to 9600 command chains. Always end with a '0' command to end the program.  Use to set robots movement=> <https://docs.google.com/document/d/13FU5d5H6w4hezWctLNM-Rf5GTDMTaTW0ypAhlw5teiY/edit>
-const int maxStages = sizeof(movement_list);                            // Determines the size of 'movement_list'
+/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––*/
+int motor_tune[] = { 0.0, 0.0, 0.0, 0.0}; 
+int movement_list[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };  /*Always end with a '0' command to end the program.  Use to set robots movement=> <https://docs.google.com/document/d/13FU5d5H6w4hezWctLNM-Rf5GTDMTaTW0ypAhlw5teiY/edit>
+/*––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––*/
+const int maxStages = sizeof(movement_list);                            
 const int cool_down_time_set = 100;                                       /*milliseconds*/
 int motor_tweak[] = { 0.99, 0.99, 0.99, 0.99 }; /* <<< DO NOT TWEAK THIS AT ALL!!! */
-int motor_tune[] = { 0.0, 0.0, 0.0, 0.0}; /* <<< tweak this one*/
 uint16_t BNO055_SAMPLERATE_DELAY_MS = 100;
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire);
 void setup() {
