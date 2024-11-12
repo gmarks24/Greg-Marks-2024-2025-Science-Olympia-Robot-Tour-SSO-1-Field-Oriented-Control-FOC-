@@ -27,11 +27,11 @@ MC - DFRobot DRI0039
 Operation - 9V & Max 20.6Amps [Rec. 20-22awg wire]                                  
 Rec. battery - 6(six) AA 1.5V                                                       
 IMU - Adafruit 9-DOF Absolute Orientation IMU Fusion Breakout - BNO055
-*/
 
-//V1.5.0
-//4 Novermber 2024
-//#include "Arduino_LED_Matrix.h" //<Only needed if using Arduino R4 WiFi>//
+V2.1.0
+12 Novermber 2024
+*/
+//#include "Arduino_LED_Matrix.h" /* Only needed if using Arduino R4 WiFi */
 #include "Arduino.h"
 #include <Wire.h>
 #include <SPI.h>
@@ -42,37 +42,38 @@ IMU - Adafruit 9-DOF Absolute Orientation IMU Fusion Breakout - BNO055
 #include <math.h>
 #include "RTC.h"
 #include <EEPROM.h>
-const int P1 = 3;                                                       // Motor1 power (Front Right)
-const int P2 = 11;                                                      // Motor2 power (Front Left)
-const int P3 = 5;                                                       // Motor3 power (Back Right)
-const int P4 = 6;                                                       // Motor4 power (Back Left)
-const int M1 = 4;                                                       // Motor1 Direction (Front Right)
-const int M2 = 12;                                                      // Motor2 Direction (Front Left)
-const int M3 = 8;                                                       // Motor3 Direction (Back Right)
-const int M4 = 7;                                                       // Motor4 Direction (Back Left)
-const int FOC_POWER_SET_1 = 255;                                        // Motor power set high
-const int FOC_POWER_SET_2 = 0;                                          // Motor power set low
-int foc_distance_25cm = 500;                                            // Distance for traveling 25cm in FOC. Movement distances in milliseconds.
-int foc_distance_50cm_left = 1000;                                      // Distance for traveling 50cm in FOC. Movement distances in milliseconds.
-int foc_distance_100cm_left = 2000;                                     // Distance for traveling 100cm in FOC. Movement distances in milliseconds.
-int foc_distance_150cm_left = 3000;                                     // Distance for traveling 150cm in FOC. Movement distances in milliseconds.
-int foc_distance_200cm_left = 4000;                                     // Distance for traveling 200cm in FOC. Movement distances in milliseconds.
-int foc_distance_50cm_right = 1000;                                     // Distance for traveling 50cm in FOC. Movement distances in milliseconds.
-int foc_distance_100cm_right = 2000;                                    // Distance for traveling 100cm in FOC. Movement distances in milliseconds.
-int foc_distance_150cm_right = 3000;                                    // Distance for traveling 150cm in FOC. Movement distances in milliseconds.
-int foc_distance_200cm_right = 4000;                                    // Distance for traveling 200cm in FOC. Movement distances in milliseconds.
-int foc_distance_50cm_forward = 1000;                                   // Distance for traveling 50cm in FOC. Movement distances in milliseconds.
-int foc_distance_100cm_forward = 2000;                                  // Distance for traveling 100cm in FOC. Movement distances in milliseconds.
-int foc_distance_150cm_forward = 3000;                                  // Distance for traveling 150cm in FOC. Movement distances in milliseconds.
-int foc_distance_200cm_forward = 4000;                                  // Distance for traveling 200cm in FOC. Movement distances in milliseconds.
-int foc_distance_50cm_backward = 1000;                                  // Distance for traveling 50cm in FOC. Movement distances in milliseconds.
-int foc_distance_100cm_backward = 2000;                                 // Distance for traveling 100cm in FOC. Movement distances in milliseconds.
-int foc_distance_150cm_backward = 3000;                                 // Distance for traveling 150cm in FOC. Movement distances in milliseconds.
-int foc_distance_200cm_backward = 4000;                                 // Distance for traveling 200cm in FOC. Movement distances in milliseconds.
+const int P1 = 3;                                                    
+const int P2 = 11;                                                
+const int P3 = 5;                                                       
+const int P4 = 6;                                                  
+const int M1 = 4;                                                     
+const int M2 = 12;                                                 
+const int M3 = 8;                                                     
+const int M4 = 7;                                                    
+const int FOC_POWER_SET_1 = 255;                               
+const int FOC_POWER_SET_2 = 0;                                      
+int foc_distance_25cm = 500;                                         
+int foc_distance_50cm_left = 1000;                              
+int foc_distance_100cm_left = 2000;                              
+int foc_distance_150cm_left = 3000;                                 
+int foc_distance_200cm_left = 4000;                               
+int foc_distance_50cm_right = 1000;                                     
+int foc_distance_100cm_right = 2000;                                
+int foc_distance_150cm_right = 3000;                           
+int foc_distance_200cm_right = 4000;                             
+int foc_distance_50cm_forward = 1000;                                
+int foc_distance_100cm_forward = 2000;                          
+int foc_distance_150cm_forward = 3000;                  
+int foc_distance_200cm_forward = 4000;                         
+int foc_distance_50cm_backward = 1000;   
+int foc_distance_100cm_backward = 2000;                               
+int foc_distance_150cm_backward = 3000;                                 
+int foc_distance_200cm_backward = 4000;                                 
 int movement_list[] = { 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 };  // Up to 9600 command chains. Always end with a '0' command to end the program.  Use to set robots movement=> <https://docs.google.com/document/d/13FU5d5H6w4hezWctLNM-Rf5GTDMTaTW0ypAhlw5teiY/edit>
 const int maxStages = sizeof(movement_list);                            // Determines the size of 'movement_list'
-const int cool_down_time_set = 1;                                       //milliseconds
-int motor_tweak[] = { 0.99, 0.99, 0.99, 0.99 };
+const int cool_down_time_set = 100;                                       /*milliseconds*/
+int motor_tweak[] = { 0.99, 0.99, 0.99, 0.99 }; /* <<< DO NOT TWEAK THIS AT ALL!!! */
+int motor_tune[] = { 0.0, 0.0, 0.0, 0.0}; /* <<< tweak this one*/
 uint16_t BNO055_SAMPLERATE_DELAY_MS = 100;
 Adafruit_BNO055 bno = Adafruit_BNO055(55, 0x28, &Wire);
 void setup() {
@@ -171,20 +172,20 @@ void left_orientation() {
   sensors_event_t orientationData;
   bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
   if (orientationData.orientation.z > 359 || orientationData.orientation.z < 1) {
-    motor_tweak[0] = 0.99;  //or motor_tweak[?] = motor_tweak[?] + or - 1;
-    motor_tweak[1] = 0.99;
-    motor_tweak[2] = 0.99;
-    motor_tweak[3] = 0.99;
+    motor_tweak[0] = 0.99 - motor_tune[0];  //or motor_tweak[?] = motor_tweak[?] + or - 1;
+    motor_tweak[1] = 0.99 - motor_tune[1];
+    motor_tweak[2] = 0.99 - motor_tune[2];
+    motor_tweak[3] = 0.99 - motor_tune[3];
   } else if (orientationData.orientation.z <= 359 && orientationData.orientation.z >= 180) {
-    motor_tweak[0] = 0.99;
-    motor_tweak[1] = 0.90;
-    motor_tweak[2] = 0.90;
-    motor_tweak[3] = 0.99;
+    motor_tweak[0] = 0.99 - motor_tune[0];
+    motor_tweak[1] = 0.90 - motor_tune[1];
+    motor_tweak[2] = 0.90 - motor_tune[2];
+    motor_tweak[3] = 0.99 - motor_tune[3];
   } else if (orientationData.orientation.z >= 1 && orientationData.orientation.z <= 180) {
-    motor_tweak[0] = 0.90;
-    motor_tweak[1] = 0.99;
-    motor_tweak[2] = 0.99;
-    motor_tweak[3] = 0.90;
+    motor_tweak[0] = 0.90 - motor_tune[0];
+    motor_tweak[1] = 0.99 - motor_tune[1];
+    motor_tweak[2] = 0.99 - motor_tune[2];
+    motor_tweak[3] = 0.90 - motor_tune[3];
   }
 }
 
@@ -192,60 +193,60 @@ void right_orientation() {
   sensors_event_t orientationData;
   bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
   if (orientationData.orientation.z > 359 || orientationData.orientation.z < 1) {
-    motor_tweak[0] = 0.99;  //or motor_tweak[?] = motor_tweak[?] + or - 1;
-    motor_tweak[1] = 0.99;
-    motor_tweak[2] = 0.99;
-    motor_tweak[3] = 0.99;
+    motor_tweak[0] = 0.99 - motor_tune[0];  //or motor_tweak[?] = motor_tweak[?] + or - 1;
+    motor_tweak[1] = 0.99 - motor_tune[1];
+    motor_tweak[2] = 0.99 - motor_tune[2];
+    motor_tweak[3] = 0.99 - motor_tune[3];
   } else if (orientationData.orientation.z <= 359 && orientationData.orientation.z >= 180) {
-    motor_tweak[0] = 0.99;
-    motor_tweak[1] = 0.90;
-    motor_tweak[2] = 0.90;
-    motor_tweak[3] = 0.99;
+    motor_tweak[0] = 0.99 - motor_tune[0];
+    motor_tweak[1] = 0.90 - motor_tune[1];
+    motor_tweak[2] = 0.90 - motor_tune[2];
+    motor_tweak[3] = 0.99 - motor_tune[3];
   } else if (orientationData.orientation.z >= 1 && orientationData.orientation.z <= 180) {
-    motor_tweak[0] = 0.90;
-    motor_tweak[1] = 0.99;
-    motor_tweak[2] = 0.99;
-    motor_tweak[3] = 0.90;
+    motor_tweak[0] = 0.90 - motor_tune[0];
+    motor_tweak[1] = 0.99 - motor_tune[1];
+    motor_tweak[2] = 0.99 - motor_tune[2];
+    motor_tweak[3] = 0.90 - motor_tune[3];
   }
 }
 void forward_orientation() {
   sensors_event_t orientationData;
   bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
   if (orientationData.orientation.z > 359 || orientationData.orientation.z < 1) {
-    motor_tweak[0] = 0.99;  //or motor_tweak[?] = motor_tweak[?] + or - 1;
-    motor_tweak[1] = 0.99;
-    motor_tweak[2] = 0.99;
-    motor_tweak[3] = 0.99;
+    motor_tweak[0] = 0.99 - motor_tune[0];  //or motor_tweak[?] = motor_tweak[?] + or - 1;
+    motor_tweak[1] = 0.99 - motor_tune[1];
+    motor_tweak[2] = 0.99 - motor_tune[2];
+    motor_tweak[3] = 0.99 - motor_tune[3];
   } else if (orientationData.orientation.z <= 359 && orientationData.orientation.z >= 180) {
-    motor_tweak[0] = 0.90;
-    motor_tweak[1] = 0.99;
-    motor_tweak[2] = 0.90;
-    motor_tweak[3] = 0.99;
+    motor_tweak[0] = 0.90 - motor_tune[0];
+    motor_tweak[1] = 0.99 - motor_tune[1];
+    motor_tweak[2] = 0.90 - motor_tune[2];
+    motor_tweak[3] = 0.99 - motor_tune[3];
   } else if (orientationData.orientation.z >= 1 && orientationData.orientation.z <= 180) {
-    motor_tweak[0] = 0.99;
-    motor_tweak[1] = 0.90;
-    motor_tweak[2] = 0.99;
-    motor_tweak[3] = 0.90;
+    motor_tweak[0] = 0.99 - motor_tune[0];
+    motor_tweak[1] = 0.90 - motor_tune[1];
+    motor_tweak[2] = 0.99 - motor_tune[2];
+    motor_tweak[3] = 0.90 - motor_tune[3];
   }
 }
 void backward_orientation() {
   sensors_event_t orientationData;
   bno.getEvent(&orientationData, Adafruit_BNO055::VECTOR_EULER);
   if (orientationData.orientation.z > 359 || orientationData.orientation.z < 1) {
-    motor_tweak[0] = 0.99;  //or motor_tweak[?] = motor_tweak[?] + or - 1;
-    motor_tweak[1] = 0.99;
-    motor_tweak[2] = 0.99;
-    motor_tweak[3] = 0.99;
+    motor_tweak[0] = 0.99 - motor_tune[0];  //or motor_tweak[?] = motor_tweak[?] + or - 1;
+    motor_tweak[1] = 0.99 - motor_tune[1];
+    motor_tweak[2] = 0.99 - motor_tune[2];
+    motor_tweak[3] = 0.99 - motor_tune[3];
   } else if (orientationData.orientation.z <= 359 && orientationData.orientation.z >= 180) {
-    motor_tweak[0] = 0.99;
-    motor_tweak[1] = 0.90;
-    motor_tweak[2] = 0.99;
-    motor_tweak[3] = 0.90;
+    motor_tweak[0] = 0.99 - motor_tune[0];
+    motor_tweak[1] = 0.90 - motor_tune[1];
+    motor_tweak[2] = 0.99 - motor_tune[2];
+    motor_tweak[3] = 0.90 - motor_tune[3];
   } else if (orientationData.orientation.z >= 1 && orientationData.orientation.z <= 180) {
-    motor_tweak[0] = 0.90;
-    motor_tweak[1] = 0.99;
-    motor_tweak[2] = 0.90;
-    motor_tweak[3] = 0.99;
+    motor_tweak[0] = 0.90 - motor_tune[0];
+    motor_tweak[1] = 0.99 - motor_tune[1];
+    motor_tweak[2] = 0.90 - motor_tune[2];
+    motor_tweak[3] = 0.99 - motor_tune[3];
   }
 }
 int error = 0.09;
