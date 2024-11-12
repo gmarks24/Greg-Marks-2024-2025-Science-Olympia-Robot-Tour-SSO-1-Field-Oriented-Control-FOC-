@@ -81,12 +81,13 @@ void setup() {
   MOTORsetup();
   BNOsetup();
   RTCsetup();
-  EEPROMsetup();
+  /*EEPROMsetup();*/
   delay(1000);
 }
 void MOTORsetup() {
   int pins[] = { P1, P2, P3, P4, M1, M2, M3, M4 };
   for (int i = 0; i < 8; i++) { pinMode(pins[i], OUTPUT); }
+  Serial.println("Motor setup complete");
 }
 void EEPROMsetup() {
   while (!Serial.available()) {}
@@ -107,6 +108,7 @@ void BNOsetup() {
     Serial.print("No BNO055 detected, Check your wiring or I2C ADDR!");
     while (1);
   }
+  Serial.println("BNO setup complete");
 }
 void RTCsetup() {
   RTC.begin();
@@ -121,7 +123,7 @@ void RTCsetup() {
   int second = 1;
   RTCTime startTime(day, (Month)month, year, hour, minute, second, DayOfWeek::MONDAY, SaveLight::SAVING_TIME_INACTIVE);
   RTC.setTime(startTime);
-  Serial.println("RTC is set!");
+  Serial.println("RTC setup complete");
 }
 void pre_executionMovement() {
   foc_forward(FOC_POWER_SET_1);
